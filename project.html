@@ -368,7 +368,7 @@
 
         let isListening = false;
         let timerId = null; // For managing the timer
-        let countdownIntervalId = null; // New: For managing the countdown interval
+        let countdownIntervalId = null; // For managing the countdown interval
         let lastSpokenText = ''; // To store the text for on-demand speech
 
         // --- Utility Functions for UI Feedback ---
@@ -510,13 +510,11 @@
             - What is the weather in London? (Or just "Weather")
             - Tell me a joke.
             - What is 5 plus 3? (Or just "Calculate")
-            - Tell me the news.
-            - Define euphoria.
             - Set a timer for 10 seconds.
             - Generate a random number between 1 and 100.
             - Copy output.
             - Stop speaking.
-            - What is the capital of France? (General questions)`;
+            `; // Removed News and general questions as APIs are removed.
             // Display, but don't speak all commands
             outputContentWrapper.innerHTML = `Assistant: <pre style="white-space: pre-wrap; text-align: left; margin: 0; padding: 0; color: inherit;">${commandsText}</pre>`;
             outputDiv.className = 'glass-card info'; // Ensure class is correct
@@ -565,44 +563,42 @@
                 handled = true;
             }
 
-            // Weather - more flexible regex to catch general weather queries
+            // Weather - now a placeholder, as API is removed
             const weatherCommandRegex = /(what is the weather in|weather in|tell me the weather in)\s+(.+)|(what is the weather|weather|give me the weather|tell me weather)/;
             const weatherMatch = command.match(weatherCommandRegex);
             if (!handled && weatherMatch) {
-                if (weatherMatch[2]) { // If a city was captured (from the first part of regex)
-                    const city = weatherMatch[2].trim();
-                    await getWeather(city);
-                } else { // If only a general weather request was made without a specific city
-                    setOutput('Assistant: For what city would you like the weather?', 'info', true); // Speak immediately
-                }
-                handled = true; 
-            }
-
-            // Joke
-            if (!handled && (command.includes('tell me a joke') || command.includes('tell a joke') || command.includes('joke'))) {
-                await getJoke();
+                const msg = "Sorry, I cannot fetch live weather data as external API integrations have been removed.";
+                setOutput(`Assistant: ${msg}`, 'info', true);
                 handled = true;
             }
 
-            // Calculation - improved to handle "calculate" command
+            // Joke - now a placeholder, as API is removed
+            if (!handled && (command.includes('tell me a joke') || command.includes('tell a joke') || command.includes('joke'))) {
+                const msg = "Sorry, I cannot tell jokes as external API integrations have been removed.";
+                setOutput(`Assistant: ${msg}`, 'info', true);
+                handled = true;
+            }
+
+            // Calculation
             let calcHandled = false;
             if (command.includes('calculate') || (command.includes('what is') && (command.includes('plus') || command.includes('minus') || command.includes('times') || command.includes('divided by')))) {
-                calculate(command); // Pass original command for word parsing
+                calculate(command);
                 handled = true;
                 calcHandled = true; 
             }
             
-            // News
+            // News - now a placeholder, as API is removed
             if (!handled && (command.includes('tell me the news') || command.includes('latest news') || command.includes('news'))) {
-                await getNews();
+                const msg = "Sorry, I cannot fetch news headlines as external API integrations have been removed.";
+                setOutput(`Assistant: ${msg}`, 'info', true);
                 handled = true;
             }
 
-            // Define word
+            // Define word - now a placeholder, as API is removed
             const defineMatch = command.match(/define\s+(.+)/);
             if (!handled && defineMatch) {
-                const word = defineMatch[1].trim();
-                await defineWord(word);
+                const msg = "Sorry, I cannot define words as external API integrations have been removed.";
+                setOutput(`Assistant: ${msg}`, 'info', true);
                 handled = true;
             }
 
@@ -632,14 +628,15 @@
 
             // Stop speaking
             if (!handled && (command.includes('stop speaking') || command.includes('silence') || command.includes('be quiet'))) {
-                synth.cancel(); // Directly cancel speech
-                setOutput('Assistant: Speech stopped.', 'info'); // No immediate speech from this setOutput
+                synth.cancel();
+                setOutput('Assistant: Speech stopped.', 'info');
                 handled = true;
             }
 
-            // Fallback to Gemini AI for general questions, but only if not handled by a specific command
+            // Fallback for unhandled commands (since Gemini AI is removed)
             if (!handled && !calcHandled) { 
-                await queryGeminiAI(command);
+                const fallbackMessage = "I understand you said: \"" + command + "\". I can only respond to predefined commands since external AI integrations have been removed.";
+                setOutput(`Assistant: ${fallbackMessage}`, 'info', true);
             }
         }
 
@@ -666,97 +663,49 @@
                     if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
                         const message = `Tried to open ${normalized}, but it might be blocked by a pop-up blocker. Please check your browser settings or click the link manually: <a href="${url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">Open ${normalized}</a>`;
                         const speakable = `I tried to open ${normalized}, but your browser might have blocked it. Please check your pop-up blocker or click the link on the screen.`;
-                        setOutput(`Assistant: ${message}`, 'html', true, speakable); // Speak immediately
+                        setOutput(`Assistant: ${message}`, 'html', true, speakable);
                     } else {
-                        setOutput(`Assistant: Opening ${normalized}. If the tab does not appear, please check your browser's pop-up blocker settings.`, 'success', true); // Speak immediately
+                        setOutput(`Assistant: Opening ${normalized}. If the tab does not appear, please check your browser's pop-up blocker settings.`, 'success', true);
                     }
                 } catch (e) {
                     console.error('Error attempting to open window:', e);
                     const message = `An error occurred trying to open ${normalized}. Please check your browser or click the link manually: <a href="${url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">Open ${normalized}</a>`;
                     const speakable = `An error occurred trying to open ${normalized}. Please check your browser or click the link on the screen.`;
-                    setOutput(`Assistant: ${message}`, 'html', true, speakable); // Speak immediately
+                    setOutput(`Assistant: ${message}`, 'html', true, speakable);
                 }
 
             } else {
                 const message = `Sorry, I can't open ${normalized}.`;
-                setOutput(`Assistant: ${message}`, 'error', true); // Speak immediately
+                setOutput(`Assistant: ${message}`, 'error', true);
             }
         }
 
+        // --- Placeholder functions for removed API features ---
+        // These functions will now simply inform the user that the feature is unavailable
         async function getWeather(city) {
-            setOutput(`Assistant: Getting weather for ${city}...`, 'info', true); // Speak immediately
-            try {
-                const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
-                const geoData = await geoResponse.json();
-
-                if (!geoData.results || geoData.results.length === 0) {
-                    const msg = `Could not find weather data for ${city}. Please try a different city.`;
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                    return;
-                }
-
-                const { latitude, longitude, name, country } = geoData.results[0];
-
-                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&forecast_days=1`);
-                const weatherData = await weatherResponse.json();
-
-                if (weatherData.current_weather) {
-                    const { temperature, windspeed, weathercode } = weatherData.current_weather;
-                    const weatherDescription = getWeatherCodeDescription(weathercode);
-                    const response = `The current weather in ${name}, ${country} is ${temperature}°C, ${weatherDescription}, with wind at ${windspeed} kilometers per hour.`;
-                    setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
-                } else {
-                    const msg = `Could not retrieve current weather for ${name}, ${country}.`;
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                }
-
-            } catch (error) {
-                console.error('Weather API error:', error);
-                const msg = `There was an error fetching weather data for ${city}. Please try again later.`;
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-            }
-        }
-
-        function getWeatherCodeDescription(code) {
-            const descriptions = {
-                0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-                45: 'Fog', 48: 'Depositing rime fog', 51: 'Drizzle: Light',
-                53: 'Drizzle: Moderate', 55: 'Drizzle: Dense intensity', 56: 'Freezing Drizzle: Light',
-                57: 'Freezing Drizzle: Dense intensity', 61: 'Rain: Light',
-                63: 'Rain: Moderate', 65: 'Rain: Heavy intensity', 66: 'Freezing Rain: Light',
-                67: 'Freezing Rain: Heavy intensity', 71: 'Snow fall: Light',
-                73: 'Snow fall: Moderate', 75: 'Snow fall: Heavy intensity', 77: 'Snow grains',
-                80: 'Rain showers: Light', 81: 'Rain showers: Moderate', 82: 'Rain showers: Violent',
-                85: 'Snow showers: Light', 86: 'Snow showers: Heavy',
-                95: 'Thunderstorm: Light or moderate', 96: 'Thunderstorm with slight hail',
-                99: 'Thunderstorm with heavy hail'
-            };
-            return descriptions[code] || 'unknown weather condition';
+            const msg = `Sorry, I cannot fetch live weather data as external API integrations have been removed.`;
+            setOutput(`Assistant: ${msg}`, 'info', true);
         }
 
         async function getJoke() {
-            setOutput('Assistant: Thinking of a joke...', 'info', true); // Speak immediately
-            try {
-                const response = await fetch('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist&type=single');
-                const data = await response.json();
-
-                if (data.joke) {
-                    setOutput(`Assistant: ${data.joke}`, 'success', false, data.joke); // On-demand speak
-                } else if (data.setup && data.delivery) {
-                    const fullJoke = `${data.setup} ... ${data.delivery}`;
-                    const speakableJoke = `${data.setup}. ${data.delivery}`; // For better natural speech
-                    setOutput(`Assistant: ${fullJoke}`, 'success', false, speakableJoke); // On-demand speak
-                } else {
-                    const msg = 'Sorry, I couldn\'t fetch a joke right now.';
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                }
-            } catch (error) {
-                console.error('Joke API error:', error);
-                const msg = 'There was an error getting a joke. Please try again later.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-            }
+            const msg = `Sorry, I cannot tell jokes as external API integrations have been removed.`;
+            setOutput(`Assistant: ${msg}`, 'info', true);
         }
 
+        async function getNews() {
+            const msg = `Sorry, I cannot fetch news headlines as external API integrations have been removed.`;
+            setOutput(`Assistant: ${msg}`, 'info', true);
+        }
+
+        async function defineWord(word) {
+            const msg = `Sorry, I cannot define words as external API integrations have been removed.`;
+            setOutput(`Assistant: ${msg}`, 'info', true);
+        }
+
+        // Removed queryGeminiAI entirely as it relies on the API
+        // async function queryGeminiAI(prompt) { ... }
+
+        // --- Remaining core functions ---
         function calculate(command) {
             const operations = {
                 'plus': '+', 'add': '+',
@@ -785,11 +734,11 @@
                     if (operator === null || num2 === null) { 
                         if (!isNaN(num1)) {
                             const response = `The number is ${num1}. Did you mean to perform an operation?`;
-                            setOutput(`Assistant: ${response}`, 'info', true); // Speak immediately
+                            setOutput(`Assistant: ${response}`, 'info', true);
                             return;
                         } else {
                              const msg = `Sorry, I could not understand the calculation. Please phrase it simply, like "What is 5 plus 3".`;
-                            setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                            setOutput(`Assistant: ${msg}`, 'error', true);
                             return;
                         }
                     }
@@ -800,7 +749,7 @@
                         case '*': result = num1 * num2; break;
                         case '/':
                             if (num2 === 0) {
-                                setOutput('Assistant: Division by zero is not allowed.', 'error', true); // Speak immediately
+                                setOutput('Assistant: Division by zero is not allowed.', 'error', true);
                                 return;
                             }
                             result = num1 / num2;
@@ -811,89 +760,19 @@
 
                     if (result !== null) {
                         const response = `The answer is ${result}.`;
-                        setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+                        setOutput(`Assistant: ${response}`, 'success', false, response);
                     } else {
                         const msg = `Sorry, I could not perform that calculation. Please phrase it simply, like "What is 5 plus 3".`;
-                        setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                        setOutput(`Assistant: ${msg}`, 'error', true);
                     }
                 } else {
                      const msg = `Sorry, I could not understand the calculation. Please phrase it simply, like "What is 5 plus 3".`;
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                    setOutput(`Assistant: ${msg}`, 'error', true);
                 }
             } catch (e) {
                 console.error('Calculation error:', e);
                 const msg = `Sorry, I encountered an error performing that calculation.`;
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-            }
-        }
-
-        async function getNews() {
-            const NEWS_API_KEY = 'YOUR_NEWS_API_KEY'; 
-            if (NEWS_API_KEY === 'YOUR_NEWS_API_KEY') {
-                const msg = 'To get news headlines, please sign up for a free API key at newsapi.org and replace "YOUR_NEWS_API_KEY" in the code.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                return;
-            }
-
-            setOutput('Assistant: Fetching the latest news headlines...', 'info', true); // Speak immediately
-            try {
-                const response = await fetch(`https://newsapi.org/v2/top-headlines?country=us&apiKey=${NEWS_API_KEY}`);
-                const data = await response.json();
-
-                if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-                    const articles = data.articles.slice(0, 3); 
-                    let newsSummaryForSpeech = 'Here are the top headlines: ';
-                    let displayContent = 'Top Headlines:<br>';
-                    articles.forEach((article, index) => {
-                        newsSummaryForSpeech += `Number ${index + 1}: ${article.title}. `;
-                        displayContent += `<a href="${article.url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">${index + 1}. ${article.title}</a><br>`;
-                    });
-                    // Use outputDiv.innerHTML directly to support links, and then setOutput for consistency and button
-                    setOutput(`Assistant: ${newsSummaryForSpeech}<br><br>${displayContent}`, 'success', false, newsSummaryForSpeech); // On-demand speak
-                } else {
-                    const msg = 'Sorry, I couldn\'t fetch the news right now.';
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                }
-            } catch (error) {
-                console.error('News API error:', error);
-                const msg = 'There was an error getting the news. Please check your API key and try again later.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-            }
-        }
-
-        async function defineWord(word) {
-            setOutput(`Assistant: Looking up the definition for "${word}"...`, 'info', true); // Speak immediately
-            try {
-                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-                const data = await response.json();
-
-                if (response.ok && data.length > 0) {
-                    const entry = data[0];
-                    if (entry.meanings && entry.meanings.length > 0) {
-                        const meaning = entry.meanings[0];
-                        if (meaning.definitions && meaning.definitions.length > 0) {
-                            const definition = meaning.definitions[0].definition;
-                            const partOfSpeech = meaning.partOfSpeech || 'N/A';
-                            const example = meaning.definitions[0].example ? `Example: "${meaning.definitions[0].example}"` : '';
-                            const responseText = `The definition of ${word} as a ${partOfSpeech} is: ${definition}. ${example}`;
-                            const displayHtml = `Assistant: <b>${word}</b> (${partOfSpeech}): ${definition}.<br>${example}`;
-                            setOutput(displayHtml, 'html', false, responseText); // On-demand speak
-                        } else {
-                            const msg = `Sorry, I couldn't find a definition for "${word}".`;
-                            setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                        }
-                    } else {
-                        const msg = `Sorry, I couldn't find a meaning for "${word}".`;
-                        setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                    }
-                } else {
-                    const msg = `Sorry, I couldn't find "${word}" in the dictionary.`;
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                }
-            } catch (error) {
-                console.error('Dictionary API error:', error);
-                const msg = `There was an error fetching the definition for "${word}". Please try again later.`;
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                setOutput(`Assistant: ${msg}`, 'error', true);
             }
         }
 
@@ -912,7 +791,7 @@
             
             // Initial message spoken immediately
             let initialSpeakMessage = `Setting a timer for ${value} ${unit}${value === 1 ? '' : 's'}.`;
-            setOutput(`Assistant: ${initialSpeakMessage}<br>Remaining: --:--`, 'info', true, initialSpeakMessage); // Speak initial message and display placeholder
+            setOutput(`Assistant: ${initialSpeakMessage}<br>Remaining: --:--`, 'info', true, initialSpeakMessage);
 
             if (unit === 'second') {
                 durationMs = value * 1000;
@@ -922,7 +801,7 @@
                 durationMs = value * 60 * 60 * 1000;
             } else {
                 const msg = 'Invalid timer unit. Please use seconds, minutes, or hours.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                setOutput(`Assistant: ${msg}`, 'error', true);
                 return;
             }
 
@@ -933,9 +812,9 @@
                 const remainingTimeMs = endTime - Date.now();
                 if (remainingTimeMs <= 0) {
                     clearInterval(countdownIntervalId);
-                    countdownIntervalId = null; // Clear the interval ID
+                    countdownIntervalId = null;
                     const finishMessage = `Time's up! Your ${value} ${unit}${value === 1 ? '' : 's'} timer has finished.`;
-                    setOutput(`Assistant: ${finishMessage}`, 'success', true); // Speak immediately for the final message
+                    setOutput(`Assistant: ${finishMessage}`, 'success', true);
                     return;
                 }
 
@@ -945,7 +824,7 @@
 
                 const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 outputContentWrapper.innerHTML = `Assistant: ${initialSpeakMessage.split('<br>')[0]}<br>Remaining: ${formattedTime}`;
-                outputDiv.className = 'glass-card info'; // Maintain info styling during countdown
+                outputDiv.className = 'glass-card info';
             };
 
             // Start the countdown immediately and then every second
@@ -954,35 +833,35 @@
 
             // Set the final timer to clear the interval and announce completion
             timerId = setTimeout(() => {
-                if (countdownIntervalId) { // Ensure interval is still running before clearing
+                if (countdownIntervalId) {
                     clearInterval(countdownIntervalId);
                     countdownIntervalId = null;
                 }
                 const finishMessage = `Time's up! Your ${value} ${unit}${value === 1 ? '' : 's'} timer has finished.`;
-                setOutput(`Assistant: ${finishMessage}`, 'success', true); // Speak immediately for the final message
-                timerId = null; // Clear the timeout ID
+                setOutput(`Assistant: ${finishMessage}`, 'success', true);
+                timerId = null;
             }, durationMs);
         }
 
         function generateRandomNumber(min, max) {
             if (isNaN(min) || isNaN(max)) {
                 const msg = 'Please provide valid numbers for the range.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                setOutput(`Assistant: ${msg}`, 'error', true);
                 return;
             }
             if (min >= max) {
                 const msg = 'The minimum value must be less than the maximum value.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                setOutput(`Assistant: ${msg}`, 'error', true);
                 return;
             }
 
             const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
             const response = `Your random number between ${min} and ${max} is ${randomNumber}.`;
-            setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+            setOutput(`Assistant: ${response}`, 'success', false, response);
         }
 
         function copyOutputToClipboard() {
-            const textToCopy = outputContentWrapper.textContent; // Get text from content wrapper
+            const textToCopy = outputContentWrapper.textContent;
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = textToCopy;
             tempTextArea.style.position = 'absolute';
@@ -991,57 +870,14 @@
             tempTextArea.select(); 
             try {
                 document.execCommand('copy'); 
-                setOutput('Assistant: Text copied to clipboard!', 'success', true); // Speak immediately
+                setOutput('Assistant: Text copied to clipboard!', 'success', true);
             } catch (err) {
                 console.error('Failed to copy text:', err);
-                setOutput('Assistant: Failed to copy text.', 'error', true); // Speak immediately
+                setOutput('Assistant: Failed to copy text.', 'error', true);
             } finally {
                 document.body.removeChild(tempTextArea); 
             }
         }
-
-        async function queryGeminiAI(prompt) {
-            const API_KEY = "AIzaSyAhMH06p0Jauwuk_y63FAw3UbQcpnwSXH4"; // User provided API key
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-
-            if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
-                const msg = 'To answer general questions, please provide your Google Cloud Gemini API key in the code.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                return;
-            }
-
-            setOutput('Assistant: Thinking...', 'loading', true); // Speak immediately while thinking
-
-            try {
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    setOutput(`Assistant: ${text}`, 'success', false, text); // On-demand speak
-                } else {
-                    console.error('Gemini API response error:', result);
-                    const msg = 'Sorry, I could not get a response from the AI.';
-                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-                }
-            } catch (error) {
-                console.error('Error querying Gemini API:', error);
-                const msg = 'There was an error communicating with the AI. Please try again later.';
-                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
-            }
-        }
-
 
         function toggleTheme() {
             document.body.classList.toggle('dark-theme');
