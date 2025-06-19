@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Voice Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-start: #1f1c2c;
+            --bg-end: #928dab;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --text-color: #ffffff;
+            --button-bg: #ffffff;
+            --button-color: #4f46e5;
+            --button-hover-bg: #4f46e5;
+            --button-hover-color: #ffffff;
+            --glow-color: rgba(255, 255, 255, 0.7);
+            --info-color: #a78bfa; /* A subtle purple for info messages */
+            --loading-color: #f7d242; /* Yellow for loading */
+            --speak-button-bg: #5a67d8; /* A darker blue for speak button */
+            --speak-button-hover-bg: #434d9a; /* Darker hover */
+        }
+
+        .dark-theme {
+            --bg-start: #0f0f0f;
+            --bg-end: #333333;
+            --card-bg: rgba(0, 0, 0, 0.3);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --text-color: #ffffff;
+            --button-bg: #2d3748;
+            --button-color: #cbd5e0;
+            --button-hover-bg: #4a5568;
+            --button-hover-color: #ffffff;
+            --glow-color: rgba(255, 255, 255, 0.5);
+            --info-color: #8b5cf6;
+            --loading-color: #fce38a;
+            --speak-button-bg: #6366f1;
+            --speak-button-hover-bg: #4f46e5;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--text-color);
+            text-align: center;
+            position: relative;
+            overflow: hidden; /* For background animation */
+            transition: background-color 0.5s ease;
+        }
+
+        /* Background Animation */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Header */
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color);
+            animation: subtleEntrance 1s ease-out;
+        }
+
+        @keyframes subtleEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            gap: 20px;
+            margin-top: 30px;
+            animation: fadeIn 1.2s ease-out;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Buttons */
+        button {
+            padding: 14px 28px;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--button-color);
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 35px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0; /* Prevent buttons from shrinking too much */
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            background-color: var(--button-hover-bg);
+            color: var(--button-hover-color);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Output Area */
+        #output {
+            margin-top: 40px;
+            padding: 25px 30px;
+            font-size: 1.2rem;
+            max-width: 700px;
+            width: 90%;
+            min-height: 80px; /* Ensure it doesn't collapse */
+            display: flex;
+            flex-direction: column; /* Stack content and button */
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            line-height: 1.5; /* Improve readability */
+        }
+        #output.info {
+            color: var(--info-color);
+        }
+        #output.error {
+            color: #ff6b6b; /* A soft red for errors */
+        }
+        #output.success {
+            color: #6bff9b; /* A soft green for success */
+        }
+        #output.loading {
+            color: var(--loading-color);
+        }
+
+        /* Content wrapper inside output to separate from button */
+        #output-content-wrapper {
+            width: 100%;
+            padding-bottom: 10px; /* Space for the button */
+        }
+
+        /* Speak it out button styling */
+        .speak-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: var(--speak-button-bg);
+            color: var(--button-hover-color); /* Use button hover color for consistency */
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .speak-button:hover {
+            background-color: var(--speak-button-hover-bg);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .speak-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Glass Card Reflection Effect */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.0) 50%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 18px;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* Listening Indicator (Microphone) */
+        .mic-container {
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px; /* Placeholder to maintain layout */
+        }
+
+        #mic-icon {
+            font-size: 3.5rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        #mic-icon.listening {
+            color: #4CAF50; /* Green color when listening */
+            opacity: 1;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+
+        /* Footer */
+        footer {
+            position: fixed;
+            bottom: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        /* Theme Toggle */
+        #theme-toggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #theme-toggle i {
+            font-size: 1.1em;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            button {
+                width: 80%; /* Make buttons wider on small screens */
+                max-width: 300px; /* Limit max width */
+            }
+            #output {
+                font-size: 1rem;
+                padding: 20px;
+            }
+            #theme-toggle {
+                top: 15px;
+                right: 15px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            #mic-icon {
+                font-size: 2.8rem;
+            }
+            footer {
+                bottom: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+        <span>Dark Theme</span>
+    </button>
+
+    <h1>Voice Assistant</h1>
+
+    <div class="button-group">
+        <button onclick="startListening()">Start Listening</button>
+        <button onclick="stopListening()">Stop Listening</button>
+        <button onclick="showCommands()">Show Commands</button>
+    </div>
+
+    <div class="mic-container">
+        <i class="fas fa-microphone" id="mic-icon"></i>
+    </div>
+
+    <div id="output" class="glass-card info">
+        <div id="output-content-wrapper">Click "Start Listening" to begin!</div>
+    </div>
+
+    <footer>Designed with ❤️ by Harsh Raj</footer>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        const synth = window.speechSynthesis;
+
+        const outputDiv = document.getElementById('output');
+        const outputContentWrapper = document.getElementById('output-content-wrapper');
+        const micIcon = document.getElementById('mic-icon');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeToggleText = document.getElementById('theme-toggle').querySelector('span');
+
+        let isListening = false;
+        let timerId = null; // For managing the timer
+        let countdownIntervalId = null; // New: For managing the countdown interval
+        let lastSpokenText = ''; // To store the text for on-demand speech
+
+        // --- Utility Functions for UI Feedback ---
+        // 'message' can be plain text or HTML
+        // 'type' controls styling (info, error, success, loading, default)
+        // 'speakImmediately' controls if the assistant speaks the message right away
+        // 'speakableContent' is the content that should be spoken if 'Speak it out' is clicked (if different from message)
+        function setOutput(message, type = 'default', speakImmediately = false, speakableContent = null) {
+            outputDiv.className = 'glass-card'; // Reset classes
+            outputDiv.classList.add(type);
+            
+            outputContentWrapper.innerHTML = message; // Always set innerHTML for flexibility
+
+            // Remove existing speak button if any
+            let existingSpeakButton = outputDiv.querySelector('.speak-button');
+            if (existingSpeakButton) {
+                existingSpeakButton.remove();
+            }
+
+            if (speakImmediately) {
+                speak(speakableContent || message); // Speak immediately if requested
+            } else if (type !== 'loading' && type !== 'info' && type !== 'error' && type !== 'default') {
+                // For actual answers (success, etc.), add a speak button
+                lastSpokenText = speakableContent || message; // Store content for later speaking
+                const speakButton = document.createElement('button');
+                speakButton.className = 'speak-button';
+                speakButton.textContent = 'Speak it out';
+                speakButton.onclick = () => speak(lastSpokenText);
+                outputDiv.appendChild(speakButton);
+            }
+        }
+
+        // --- Speech Recognition Setup ---
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                setOutput('Listening... Speak now.', 'info', true); // Speak immediately
+                micIcon.classList.add('listening');
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                setOutput(finalTranscript || interimTranscript || 'Listening...', 'info');
+                if (finalTranscript) {
+                    handleCommand(finalTranscript.toLowerCase().trim());
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                let errorMessage = 'An error occurred with speech recognition.';
+                if (event.error === 'not-allowed') {
+                    errorMessage = 'Microphone access denied. Please allow microphone in your browser settings.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'No speech detected. Please speak clearly.';
+                } else if (event.error === 'network') {
+                    errorMessage = 'Network error. Please check your internet connection.';
+                } else if (event.error === 'aborted') {
+                    errorMessage = 'Speech recognition was stopped.';
+                }
+                setOutput(`Error: ${errorMessage}`, 'error', true); // Speak immediately
+                micIcon.classList.remove('listening');
+                isListening = false;
+            };
+
+            recognition.onend = function() {
+                if (isListening) { 
+                    recognition.start();
+                } else {
+                    micIcon.classList.remove('listening');
+                    setOutput('Click "Start Listening" to begin!', 'default');
+                }
+            };
+
+        } else {
+            setOutput('Speech Recognition not supported in this browser. Please use Chrome or Edge.', 'error', true); // Speak immediately
+            alert('Speech Recognition not supported in this browser. Please use Chrome or Edge.'); 
+        }
+
+        // --- Core Functions ---
+        function startListening() {
+            if (!recognition) {
+                setOutput('Speech Recognition not supported in this browser.', 'error', true);
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(() => {
+                    if (!isListening) {
+                        recognition.start();
+                        isListening = true;
+                    }
+                })
+                .catch(err => {
+                    setOutput('Microphone access denied. Please enable it in your browser settings.', 'error', true);
+                    console.error('Microphone access denied:', err);
+                });
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false; 
+                micIcon.classList.remove('listening');
+                setOutput('Stopped listening.', 'default'); // No immediate speech
+            }
+        }
+
+        function speak(text) {
+            if (synth.speaking) {
+                synth.cancel(); 
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.volume = 1;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            synth.speak(utterance);
+        }
+
+        function showCommands() {
+            const commandsText = `Hello, I am your voice assistant. Try saying:
+            - Open Google/YouTube/etc.
+            - What is the weather in London? (Or just "Weather")
+            - Tell me a joke.
+            - What is 5 plus 3? (Or just "Calculate")
+            - Tell me the news.
+            - Define euphoria.
+            - Set a timer for 10 seconds.
+            - Generate a random number between 1 and 100.
+            - Copy output.
+            - Stop speaking.
+            - What is the capital of France? (General questions)`;
+            // Display, but don't speak all commands
+            outputContentWrapper.innerHTML = `Assistant: <pre style="white-space: pre-wrap; text-align: left; margin: 0; padding: 0; color: inherit;">${commandsText}</pre>`;
+            outputDiv.className = 'glass-card info'; // Ensure class is correct
+            // No speak call here!
+        }
+
+        async function handleCommand(command) {
+            setOutput(`You said: "${command}"`, 'default');
+
+            let handled = false;
+
+            // Open website - more flexible regex
+            const openMatch = command.match(/^(open|go to)\s+(.+)$/);
+            if (openMatch) {
+                openWebsite(openMatch[2].trim());
+                handled = true;
+            }
+            
+            // Greetings
+            if (!handled && (command.includes('hello') || command.includes('hi'))) {
+                const response = 'Hello there! How can I help you?';
+                setOutput(`Assistant: ${response}`, 'info', true);
+                handled = true;
+            }
+
+            // Time
+            if (!handled && command.includes('what time is it')) {
+                const now = new Date();
+                const time = now.toLocaleTimeString();
+                const response = `The current time is ${time}`;
+                setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+                handled = true;
+            }
+
+            // How are you
+            if (!handled && command.includes('how are you')) {
+                const response = 'I am a voice assistant, so I do not have feelings, but I am ready to assist you!';
+                setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+                handled = true;
+            }
+
+            // Theme toggle
+            if (!handled && (command.includes('change theme') || command.includes('toggle theme'))) {
+                toggleTheme();
+                setOutput('Assistant: Theme changed.', 'info', true); // Speak immediately
+                handled = true;
+            }
+
+            // Weather - more flexible regex to catch general weather queries
+            const weatherCommandRegex = /(what is the weather in|weather in|tell me the weather in)\s+(.+)|(what is the weather|weather|give me the weather|tell me weather)/;
+            const weatherMatch = command.match(weatherCommandRegex);
+            if (!handled && weatherMatch) {
+                if (weatherMatch[2]) { // If a city was captured (from the first part of regex)
+                    const city = weatherMatch[2].trim();
+                    await getWeather(city);
+                } else { // If only a general weather request was made without a specific city
+                    setOutput('Assistant: For what city would you like the weather?', 'info', true); // Speak immediately
+                }
+                handled = true; 
+            }
+
+            // Joke
+            if (!handled && (command.includes('tell me a joke') || command.includes('tell a joke') || command.includes('joke'))) {
+                await getJoke();
+                handled = true;
+            }
+
+            // Calculation - improved to handle "calculate" command
+            let calcHandled = false;
+            if (command.includes('calculate') || (command.includes('what is') && (command.includes('plus') || command.includes('minus') || command.includes('times') || command.includes('divided by')))) {
+                calculate(command); // Pass original command for word parsing
+                handled = true;
+                calcHandled = true; 
+            }
+            
+            // News
+            if (!handled && (command.includes('tell me the news') || command.includes('latest news') || command.includes('news'))) {
+                await getNews();
+                handled = true;
+            }
+
+            // Define word
+            const defineMatch = command.match(/define\s+(.+)/);
+            if (!handled && defineMatch) {
+                const word = defineMatch[1].trim();
+                await defineWord(word);
+                handled = true;
+            }
+
+            // Set timer
+            const timerMatch = command.match(/set a timer for (\d+)\s*(second|minute|hour)s?/);
+            if (!handled && timerMatch) {
+                const value = parseInt(timerMatch[1]);
+                const unit = timerMatch[2];
+                setTimer(value, unit);
+                handled = true;
+            }
+
+            // Generate random number
+            const randomMatch = command.match(/generate a random number between (\d+) and (\d+)/);
+            if (!handled && randomMatch) {
+                const min = parseInt(randomMatch[1]);
+                const max = parseInt(randomMatch[2]);
+                generateRandomNumber(min, max);
+                handled = true;
+            }
+
+            // Copy output
+            if (!handled && (command.includes('copy output') || command.includes('copy this text') || command.includes('copy text'))) {
+                copyOutputToClipboard();
+                handled = true;
+            }
+
+            // Stop speaking
+            if (!handled && (command.includes('stop speaking') || command.includes('silence') || command.includes('be quiet'))) {
+                synth.cancel(); // Directly cancel speech
+                setOutput('Assistant: Speech stopped.', 'info'); // No immediate speech from this setOutput
+                handled = true;
+            }
+
+            // Fallback to Gemini AI for general questions, but only if not handled by a specific command
+            if (!handled && !calcHandled) { 
+                await queryGeminiAI(command);
+            }
+        }
+
+        function openWebsite(site) {
+            const normalized = site.toLowerCase().replace(/[^a-z0-9 ]/gi, '').trim();
+            const mappings = {
+                'youtube': 'https://www.youtube.com',
+                'google': 'https://www.google.com',
+                'facebook': 'https://www.facebook.com',
+                'twitter': 'https://www.twitter.com',
+                'github': 'https://www.github.com',
+                'stackoverflow': 'https://stackoverflow.com',
+                'linkedin': 'https://www.linkedin.com',
+                'amazon': 'https://www.amazon.com',
+                'netflix': 'https://www.netflix.com'
+            };
+            const url = mappings[normalized] || `https://www.${normalized.replace(/\s+/g, '')}.com`;
+
+            if (url) {
+                console.log(`Attempting to open URL: ${url}`); 
+
+                try {
+                    const newWindow = window.open(url, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.focus !== 'function') {
+                        const message = `Tried to open ${normalized}, but it might be blocked by a pop-up blocker. Please check your browser settings or click the link manually: <a href="${url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">Open ${normalized}</a>`;
+                        const speakable = `I tried to open ${normalized}, but your browser might have blocked it. Please check your pop-up blocker or click the link on the screen.`;
+                        setOutput(`Assistant: ${message}`, 'html', true, speakable); // Speak immediately
+                    } else {
+                        setOutput(`Assistant: Opening ${normalized}. If the tab does not appear, please check your browser's pop-up blocker settings.`, 'success', true); // Speak immediately
+                    }
+                } catch (e) {
+                    console.error('Error attempting to open window:', e);
+                    const message = `An error occurred trying to open ${normalized}. Please check your browser or click the link manually: <a href="${url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">Open ${normalized}</a>`;
+                    const speakable = `An error occurred trying to open ${normalized}. Please check your browser or click the link on the screen.`;
+                    setOutput(`Assistant: ${message}`, 'html', true, speakable); // Speak immediately
+                }
+
+            } else {
+                const message = `Sorry, I can't open ${normalized}.`;
+                setOutput(`Assistant: ${message}`, 'error', true); // Speak immediately
+            }
+        }
+
+        async function getWeather(city) {
+            setOutput(`Assistant: Getting weather for ${city}...`, 'info', true); // Speak immediately
+            try {
+                const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+                const geoData = await geoResponse.json();
+
+                if (!geoData.results || geoData.results.length === 0) {
+                    const msg = `Could not find weather data for ${city}. Please try a different city.`;
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                    return;
+                }
+
+                const { latitude, longitude, name, country } = geoData.results[0];
+
+                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&forecast_days=1`);
+                const weatherData = await weatherResponse.json();
+
+                if (weatherData.current_weather) {
+                    const { temperature, windspeed, weathercode } = weatherData.current_weather;
+                    const weatherDescription = getWeatherCodeDescription(weathercode);
+                    const response = `The current weather in ${name}, ${country} is ${temperature}°C, ${weatherDescription}, with wind at ${windspeed} kilometers per hour.`;
+                    setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+                } else {
+                    const msg = `Could not retrieve current weather for ${name}, ${country}.`;
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+
+            } catch (error) {
+                console.error('Weather API error:', error);
+                const msg = `There was an error fetching weather data for ${city}. Please try again later.`;
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+        function getWeatherCodeDescription(code) {
+            const descriptions = {
+                0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+                45: 'Fog', 48: 'Depositing rime fog', 51: 'Drizzle: Light',
+                53: 'Drizzle: Moderate', 55: 'Drizzle: Dense intensity', 56: 'Freezing Drizzle: Light',
+                57: 'Freezing Drizzle: Dense intensity', 61: 'Rain: Light',
+                63: 'Rain: Moderate', 65: 'Rain: Heavy intensity', 66: 'Freezing Rain: Light',
+                67: 'Freezing Rain: Heavy intensity', 71: 'Snow fall: Light',
+                73: 'Snow fall: Moderate', 75: 'Snow fall: Heavy intensity', 77: 'Snow grains',
+                80: 'Rain showers: Light', 81: 'Rain showers: Moderate', 82: 'Rain showers: Violent',
+                85: 'Snow showers: Light', 86: 'Snow showers: Heavy',
+                95: 'Thunderstorm: Light or moderate', 96: 'Thunderstorm with slight hail',
+                99: 'Thunderstorm with heavy hail'
+            };
+            return descriptions[code] || 'unknown weather condition';
+        }
+
+        async function getJoke() {
+            setOutput('Assistant: Thinking of a joke...', 'info', true); // Speak immediately
+            try {
+                const response = await fetch('https://v2.jokeapi.dev/joke/Any?blacklistFlags=nsfw,religious,political,racist,sexist&type=single');
+                const data = await response.json();
+
+                if (data.joke) {
+                    setOutput(`Assistant: ${data.joke}`, 'success', false, data.joke); // On-demand speak
+                } else if (data.setup && data.delivery) {
+                    const fullJoke = `${data.setup} ... ${data.delivery}`;
+                    const speakableJoke = `${data.setup}. ${data.delivery}`; // For better natural speech
+                    setOutput(`Assistant: ${fullJoke}`, 'success', false, speakableJoke); // On-demand speak
+                } else {
+                    const msg = 'Sorry, I couldn\'t fetch a joke right now.';
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+            } catch (error) {
+                console.error('Joke API error:', error);
+                const msg = 'There was an error getting a joke. Please try again later.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+        function calculate(command) {
+            const operations = {
+                'plus': '+', 'add': '+',
+                'minus': '-', 'subtract': '-',
+                'times': '*', 'multiply by': '*',
+                'divided by': '/', 'divide by': '/'
+            };
+
+            let result = null;
+            let expr = command.replace(/^(what is|calculate)\s*/, '').trim(); 
+
+            for (const opWord in operations) {
+                expr = expr.replace(new RegExp(opWord, 'g'), operations[opWord]);
+            }
+            expr = expr.replace(/one/g, '1').replace(/two/g, '2').replace(/three/g, '3').replace(/four/g, '4')
+                        .replace(/five/g, '5').replace(/six/g, '6').replace(/seven/g, '7').replace(/eight/g, '8')
+                        .replace(/nine/g, '9').replace(/zero/g, '0');
+
+            try {
+                const match = expr.match(/(-?\d+\.?\d*)\s*([\+\-\*\/])?\s*(-?\d+\.?\d*)?/); 
+                if (match) {
+                    const num1 = parseFloat(match[1]);
+                    const operator = match[2];
+                    const num2 = match[3] !== undefined ? parseFloat(match[3]) : null; 
+
+                    if (operator === null || num2 === null) { 
+                        if (!isNaN(num1)) {
+                            const response = `The number is ${num1}. Did you mean to perform an operation?`;
+                            setOutput(`Assistant: ${response}`, 'info', true); // Speak immediately
+                            return;
+                        } else {
+                             const msg = `Sorry, I could not understand the calculation. Please phrase it simply, like "What is 5 plus 3".`;
+                            setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                            return;
+                        }
+                    }
+
+                    switch (operator) {
+                        case '+': result = num1 + num2; break;
+                        case '-': result = num1 - num2; break;
+                        case '*': result = num1 * num2; break;
+                        case '/':
+                            if (num2 === 0) {
+                                setOutput('Assistant: Division by zero is not allowed.', 'error', true); // Speak immediately
+                                return;
+                            }
+                            result = num1 / num2;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (result !== null) {
+                        const response = `The answer is ${result}.`;
+                        setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+                    } else {
+                        const msg = `Sorry, I could not perform that calculation. Please phrase it simply, like "What is 5 plus 3".`;
+                        setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                    }
+                } else {
+                     const msg = `Sorry, I could not understand the calculation. Please phrase it simply, like "What is 5 plus 3".`;
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+            } catch (e) {
+                console.error('Calculation error:', e);
+                const msg = `Sorry, I encountered an error performing that calculation.`;
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+        async function getNews() {
+            const NEWS_API_KEY = 'YOUR_NEWS_API_KEY'; 
+            if (NEWS_API_KEY === 'YOUR_NEWS_API_KEY') {
+                const msg = 'To get news headlines, please sign up for a free API key at newsapi.org and replace "YOUR_NEWS_API_KEY" in the code.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                return;
+            }
+
+            setOutput('Assistant: Fetching the latest news headlines...', 'info', true); // Speak immediately
+            try {
+                const response = await fetch(`https://newsapi.org/v2/top-headlines?country=us&apiKey=${NEWS_API_KEY}`);
+                const data = await response.json();
+
+                if (data.status === 'ok' && data.articles && data.articles.length > 0) {
+                    const articles = data.articles.slice(0, 3); 
+                    let newsSummaryForSpeech = 'Here are the top headlines: ';
+                    let displayContent = 'Top Headlines:<br>';
+                    articles.forEach((article, index) => {
+                        newsSummaryForSpeech += `Number ${index + 1}: ${article.title}. `;
+                        displayContent += `<a href="${article.url}" target="_blank" style="color: var(--button-hover-color); text-decoration: underline;">${index + 1}. ${article.title}</a><br>`;
+                    });
+                    // Use outputDiv.innerHTML directly to support links, and then setOutput for consistency and button
+                    setOutput(`Assistant: ${newsSummaryForSpeech}<br><br>${displayContent}`, 'success', false, newsSummaryForSpeech); // On-demand speak
+                } else {
+                    const msg = 'Sorry, I couldn\'t fetch the news right now.';
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+            } catch (error) {
+                console.error('News API error:', error);
+                const msg = 'There was an error getting the news. Please check your API key and try again later.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+        async function defineWord(word) {
+            setOutput(`Assistant: Looking up the definition for "${word}"...`, 'info', true); // Speak immediately
+            try {
+                const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+                const data = await response.json();
+
+                if (response.ok && data.length > 0) {
+                    const entry = data[0];
+                    if (entry.meanings && entry.meanings.length > 0) {
+                        const meaning = entry.meanings[0];
+                        if (meaning.definitions && meaning.definitions.length > 0) {
+                            const definition = meaning.definitions[0].definition;
+                            const partOfSpeech = meaning.partOfSpeech || 'N/A';
+                            const example = meaning.definitions[0].example ? `Example: "${meaning.definitions[0].example}"` : '';
+                            const responseText = `The definition of ${word} as a ${partOfSpeech} is: ${definition}. ${example}`;
+                            const displayHtml = `Assistant: <b>${word}</b> (${partOfSpeech}): ${definition}.<br>${example}`;
+                            setOutput(displayHtml, 'html', false, responseText); // On-demand speak
+                        } else {
+                            const msg = `Sorry, I couldn't find a definition for "${word}".`;
+                            setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                        }
+                    } else {
+                        const msg = `Sorry, I couldn't find a meaning for "${word}".`;
+                        setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                    }
+                } else {
+                    const msg = `Sorry, I couldn't find "${word}" in the dictionary.`;
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+            } catch (error) {
+                console.error('Dictionary API error:', error);
+                const msg = `There was an error fetching the definition for "${word}". Please try again later.`;
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+        function setTimer(value, unit) {
+            let durationMs;
+            let responseText;
+            const startTime = Date.now();
+
+            // Clear any existing timer and interval
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+            if (countdownIntervalId) {
+                clearInterval(countdownIntervalId);
+            }
+            
+            // Initial message spoken immediately
+            let initialSpeakMessage = `Setting a timer for ${value} ${unit}${value === 1 ? '' : 's'}.`;
+            setOutput(`Assistant: ${initialSpeakMessage}<br>Remaining: --:--`, 'info', true, initialSpeakMessage); // Speak initial message and display placeholder
+
+            if (unit === 'second') {
+                durationMs = value * 1000;
+            } else if (unit === 'minute') {
+                durationMs = value * 60 * 1000;
+            } else if (unit === 'hour') {
+                durationMs = value * 60 * 60 * 1000;
+            } else {
+                const msg = 'Invalid timer unit. Please use seconds, minutes, or hours.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                return;
+            }
+
+            const endTime = startTime + durationMs;
+
+            // Function to update the display
+            const updateTimerDisplay = () => {
+                const remainingTimeMs = endTime - Date.now();
+                if (remainingTimeMs <= 0) {
+                    clearInterval(countdownIntervalId);
+                    countdownIntervalId = null; // Clear the interval ID
+                    const finishMessage = `Time's up! Your ${value} ${unit}${value === 1 ? '' : 's'} timer has finished.`;
+                    setOutput(`Assistant: ${finishMessage}`, 'success', true); // Speak immediately for the final message
+                    return;
+                }
+
+                const totalSeconds = Math.floor(remainingTimeMs / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                outputContentWrapper.innerHTML = `Assistant: ${initialSpeakMessage.split('<br>')[0]}<br>Remaining: ${formattedTime}`;
+                outputDiv.className = 'glass-card info'; // Maintain info styling during countdown
+            };
+
+            // Start the countdown immediately and then every second
+            updateTimerDisplay(); // Initial display
+            countdownIntervalId = setInterval(updateTimerDisplay, 1000);
+
+            // Set the final timer to clear the interval and announce completion
+            timerId = setTimeout(() => {
+                if (countdownIntervalId) { // Ensure interval is still running before clearing
+                    clearInterval(countdownIntervalId);
+                    countdownIntervalId = null;
+                }
+                const finishMessage = `Time's up! Your ${value} ${unit}${value === 1 ? '' : 's'} timer has finished.`;
+                setOutput(`Assistant: ${finishMessage}`, 'success', true); // Speak immediately for the final message
+                timerId = null; // Clear the timeout ID
+            }, durationMs);
+        }
+
+        function generateRandomNumber(min, max) {
+            if (isNaN(min) || isNaN(max)) {
+                const msg = 'Please provide valid numbers for the range.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                return;
+            }
+            if (min >= max) {
+                const msg = 'The minimum value must be less than the maximum value.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                return;
+            }
+
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            const response = `Your random number between ${min} and ${max} is ${randomNumber}.`;
+            setOutput(`Assistant: ${response}`, 'success', false, response); // On-demand speak
+        }
+
+        function copyOutputToClipboard() {
+            const textToCopy = outputContentWrapper.textContent; // Get text from content wrapper
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            tempTextArea.style.position = 'absolute';
+            tempTextArea.style.left = '-9999px';
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select(); 
+            try {
+                document.execCommand('copy'); 
+                setOutput('Assistant: Text copied to clipboard!', 'success', true); // Speak immediately
+            } catch (err) {
+                console.error('Failed to copy text:', err);
+                setOutput('Assistant: Failed to copy text.', 'error', true); // Speak immediately
+            } finally {
+                document.body.removeChild(tempTextArea); 
+            }
+        }
+
+        async function queryGeminiAI(prompt) {
+            const API_KEY = "AIzaSyAhMH06p0Jauwuk_y63FAw3UbQcpnwSXH4"; // User provided API key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+            if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
+                const msg = 'To answer general questions, please provide your Google Cloud Gemini API key in the code.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                return;
+            }
+
+            setOutput('Assistant: Thinking...', 'loading', true); // Speak immediately while thinking
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    setOutput(`Assistant: ${text}`, 'success', false, text); // On-demand speak
+                } else {
+                    console.error('Gemini API response error:', result);
+                    const msg = 'Sorry, I could not get a response from the AI.';
+                    setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+                }
+            } catch (error) {
+                console.error('Error querying Gemini API:', error);
+                const msg = 'There was an error communicating with the AI. Please try again later.';
+                setOutput(`Assistant: ${msg}`, 'error', true); // Speak immediately
+            }
+        }
+
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            themeToggleText.textContent = isDark ? 'Light Theme' : 'Dark Theme';
+        }
+
+        // Initial theme setup (optional, can be expanded to remember user preference)
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = document.body.classList.contains('dark-theme'); // Check initial class
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            themeToggleText.textContent = isDark ? 'Light Theme' : 'Dark Theme';
+        });
+    </script>
+</body>
+</html>
